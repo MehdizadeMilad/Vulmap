@@ -139,14 +139,27 @@ def linuxSystemInfo():
 
 def getProductList():
 	global productList
-	dpkg = "dpkg-query -W -f='${Package} ${Version}\n'"
-	action = subprocess.Popen(dpkg, shell = True, stdout = subprocess.PIPE)
+	listPackagesCmd = getPackagesList()
+	action = subprocess.Popen(listPackagesCmd, shell = True, stdout = subprocess.PIPE)
 	results = action.communicate()[0]
 	tempList = results.split("\n")
 
 	for i in range(0,len(tempList)-1):
 		productList.append(tempList[i].split(" "))
 		productList[i][0] = (string.replace(productList[i][0], '-','_').replace(':','_').replace('.','_')).lower()
+
+def getPackagesList():
+	debianBased = "dpkg-query -W -f='${Package} ${Version}\n'"
+	redHatBased = "rpm -qa --qf '%{n} %{version}\n'"
+
+	import platform
+	dist = str.lower(platform.linux_distribution(supported_dists='debian, redhat',full_distribution_name=0)[0])
+
+	if('ubuntu' in dist or 'debian' in dist):
+		return debianBased
+	return redHatBased
+	
+	
 
 def exploitDownload(exploit_ID):
 	try:
